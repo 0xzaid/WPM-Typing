@@ -53,9 +53,7 @@ def load_phrase():
     Reads phrases from a file called phrases.txt for user to write in terminal to practice
     """
     all_phrases = ""
-    with open("phrases.txt") as f:
-        all_phrases = f.read().splitlines()
-    with open("harvard.txt") as f:
+    with open("data.txt") as f:
         all_phrases = f.read().splitlines()
     return all_phrases
     
@@ -90,7 +88,7 @@ def wpm():
 
     # start timer
     start = time.time()
-    print(CGREEN)
+    print(CPURPLE)
     result_typed = str(input("Enter the above text: "))
     print(CEND)
 
@@ -102,8 +100,7 @@ def wpm():
         time_result = end - start
         print(CGREEN + "Statistics:" )
         print(str(round(similarity_percentage(result_typed, phrase_to_type), 1)) + "% accuracy")
-        print(str(word_count) + " words and " + str(round(time_result, 1)) + " seconds")
-
+        # print(str(word_count) + " words in " + str(round(time_result, 1)) + " seconds")
         WPM = round((word_count/time_result)*60, 1)
         print("Your WPM is: " + str(WPM))
         all_wpms.append(WPM)
@@ -111,6 +108,7 @@ def wpm():
         print("Your average WPM is: " + str(average(all_wpms)) + CEND)
     else:
         print(CRED + "Accuracy too low to calculate! Try again" + CEND)
+    
 
 
 
