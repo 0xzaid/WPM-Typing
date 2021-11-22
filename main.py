@@ -45,7 +45,7 @@ def display_phrases(phrase_to_type):
     """
     print()
     print()
-    print(CPURPLE + "[---- " + phrase_to_type +" ----]" + CEND)
+    print(CPURPLE + "[---- " + phrase_to_type + " ----]" + CEND)
     print()
 
 def load_phrase():
