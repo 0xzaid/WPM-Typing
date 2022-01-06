@@ -80,11 +80,11 @@ def wpm():
     # count number of words in phrase
     word_count = count_words_in_phrase(phrase_to_type)
 
-    # start countdown timer
-    countdown_timer()
-
     # display phrases to user
     display_phrases(phrase_to_type)
+
+    # start countdown timer
+    countdown_timer()
 
     # start timer
     start = time.time()
@@ -141,7 +141,7 @@ def countdown_timer():
     """
     seconds = 3
     for i in range(seconds):
-        print(CBLUE + str(seconds-i) + CEND, end= '\r')
+        print(str(seconds-i), end= '\r')
         time.sleep(1)
 
 
