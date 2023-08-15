@@ -6,16 +6,23 @@ import time
 from difflib import SequenceMatcher
 import os
 import sys
+from inputimeout import inputimeout
 
 # colors for text
-CPURPLE = '\033[95m'
-CRED = '\033[91m'
-CEND = '\033[0m'
-CGREEN = '\033[92m'
-CBLUE = '\33[94m'
+CPURPLE = "\033[95m"
+CRED = "\033[91m"
+CEND = "\033[0m"
+CGREEN = "\033[92m"
+CBLUE = "\33[94m"
 
 # keep track of all wpms
 all_wpms = []
+
+# CONSTANTS
+ROUND_LENGTH = 15
+ROUND_COUNTDOWN = 3
+MIN_ACCURACY = 92
+
 
 def start_screen():
     """
@@ -32,21 +39,23 @@ def start_screen():
         ready = str(input("Enter 'r' when ready or 'q' to quit: "))
         print(CEND)
         if ready == "r":
+            clear()
             wpm()
         elif ready == "q":
             print(CGREEN + "Goodbye!" + CEND)
+            clear()
             sys.exit(1)
         else:
             print(CRED + "Incorrect input: you input " + ready + " and not 'r' " + CEND)
+
 
 def display_phrases(phrase_to_type):
     """
     display text to user
     """
-    print()
-    print()
     print(CPURPLE + "[---- " + phrase_to_type + " ----]" + CEND)
     print()
+
 
 def load_phrase():
     """
@@ -56,12 +65,14 @@ def load_phrase():
     with open("data.txt") as f:
         all_phrases = f.read().splitlines()
     return all_phrases
-    
+
+
 def choose_phrase(phrases_list):
     """
     Choose a random phrase from the phrases lsit
     """
     return random.choice(phrases_list)
+
 
 def count_words_in_phrase(phrase_to_type):
     """
@@ -69,8 +80,8 @@ def count_words_in_phrase(phrase_to_type):
     """
     return len(phrase_to_type.split())
 
+
 def wpm():
-  
     # call load_phrase and store into  ALL_PHRASES
     ALL_PHRASES = load_phrase()
 
@@ -79,37 +90,53 @@ def wpm():
 
     # count number of words in phrase
     word_count = count_words_in_phrase(phrase_to_type)
+    
+    # show round count
+    print()
+    print(CBLUE)
+    print("[---------------------- Round " + str(len(all_wpms)+1) + " ----------------------]")
+    print(CEND)
 
     # display phrases to user
     display_phrases(phrase_to_type)
 
     # start countdown timer
-    countdown_timer()
+    countdown_timer(ROUND_COUNTDOWN)
 
     # start timer
     start = time.time()
-    print(CPURPLE)
-    result_typed = str(input("Enter the above text: "))
-    print(CEND)
+    # result_typed = str(input())
+
+    try:
+        # Take timed input using inputimeout() function
+        result_typed = str(inputimeout(prompt="", timeout=ROUND_LENGTH))
+
+    # Catch the timeout error
+    except Exception:
+        # Declare the timeout statement
+        time_over = "You took too long!"
+        print(time_over)
+        sys.exit(1)
 
     # end timer
-    end = time.time() 
-    
+    end = time.time()
+
     # calculate percentage of similarity of typed phrase and given phrase and print stats
-    if similarity_percentage(result_typed, phrase_to_type) >= 97:
+    if similarity_percentage(result_typed, phrase_to_type) >= MIN_ACCURACY:
         time_result = end - start
-        print(CGREEN + "Statistics:" )
-        print(str(round(similarity_percentage(result_typed, phrase_to_type), 1)) + "% accuracy")
+        print(CGREEN + "Statistics:")
+        print(
+            str(round(similarity_percentage(result_typed, phrase_to_type), 1))
+            + "% accuracy"
+        )
         # print(str(word_count) + " words in " + str(round(time_result, 1)) + " seconds")
-        WPM = round((word_count/time_result)*60, 1)
+        WPM = round((word_count / time_result) * 60, 1)
         print("Your WPM is: " + str(WPM))
         all_wpms.append(WPM)
-        
+
         print("Your average WPM is: " + str(average(all_wpms)) + CEND)
     else:
         print(CRED + "Accuracy too low to calculate! Try again" + CEND)
-    
-
 
 
 #################################################################################
@@ -119,36 +146,43 @@ def wpm():
 #################################################################################
 # clear console
 # different for windows or linux
-if os.name == 'nt': clear = lambda: os.system('cls')
-else: clear = lambda: os.system('clear')
+if os.name == "nt":
+    clear = lambda: os.system("cls")
+else:
+    clear = lambda: os.system("clear")
+
 
 def average(a_list):
     """
     return average of a list
     """
     length = len(a_list)
-    return round(sum(a_list)/length, 1)
+    return round(sum(a_list) / length, 1)
+
 
 def similarity_percentage(a, b):
     """
     calculate similarity percentage between two strings
     """
-    return SequenceMatcher(None, a, b).ratio()*100
+    return SequenceMatcher(None, a, b).ratio() * 100
 
-def countdown_timer():
+
+def countdown_timer(seconds):
     """
     countdown timer based on 'seconds' variable
     """
-    seconds = 3
-    for i in range(seconds):
-        print(str(seconds-i), end= '\r')
+    for i in range(seconds, 0, -1):
+        print(str(i), end="\r")
         time.sleep(1)
 
+    # Clear the line by printing spaces and moving the cursor back
+    print(" " * len(str(seconds)), end="\r")
+    sys.stdout.flush()
 
 
 def main():
     start_screen()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
