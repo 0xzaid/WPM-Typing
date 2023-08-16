@@ -19,9 +19,13 @@ CBLUE = "\33[94m"
 all_wpms = []
 
 # CONSTANTS
-ROUND_LENGTH = 15
+EASY_ROUND_LENGTH = 15
+MEDIUM_ROUND_LENGTH = 60
 ROUND_COUNTDOWN = 3
 MIN_ACCURACY = 92
+EASY = "./data/easy.txt"
+MEDIUM = "./data/medium.txt"
+MAX_CHAR_PER_LINE = 100
 
 
 def start_screen():
@@ -29,40 +33,119 @@ def start_screen():
     Start screen text for user
     """
     clear()
-    print(CGREEN + "------[Welcome to WPM type tester!]------")
+    print(f"{CGREEN}------[Welcome to WPM type tester!]------")
     print()
-    print(" - Text will be displayed")
-    print(" - whenever ready type r click enter and a timer will start" + CEND)
+    # print(" - Text will be displayed")
+    print("Choose game mode: ")
+    print("1. Easy")
+    print("2. Medium")
+    # print(" - whenever ready type r click enter and a timer will start" + CEND)
+    print(CEND)
 
     while True:
         print(CGREEN)
-        ready = str(input("Enter 'r' when ready or 'q' to quit: "))
-        print(CEND)
-        if ready == "r":
+        game_mode = str(input("Choose gamemode using '1', '2' or 'q' to quit: "))
+
+        if game_mode == "1":
             clear()
-            wpm()
+            wpm(EASY)
+        elif game_mode == "2":
+            wpm(MEDIUM)
         elif ready == "q":
             print(CGREEN + "Goodbye!" + CEND)
             clear()
             sys.exit(1)
         else:
-            print(CRED + "Incorrect input: you input " + ready + " and not 'r' " + CEND)
+            clear()
+            print(CRED + "Incorrect input: " + game_mode)
+            print("Try again!")
+            print(CEND)
 
 
-def display_phrases(phrase_to_type):
+def wpm(mode):
+    # call load_phrase and store into  ALL_PHRASES
+    ALL_PHRASES = load_phrase(mode)
+
+    # choose random phrase
+    phrase_to_type = choose_phrase(ALL_PHRASES)
+
+    # count number of words in phrase
+    word_count = count_words_in_phrase(phrase_to_type)
+
+    # show round count
+    clear()
+    print()
+    print(CBLUE)
+    print(
+        f"[---------------------- Round {str(len(all_wpms) + 1)} ----------------------]"
+    )
+    print(CEND)
+
+    # display phrases to user
+    display_phrases(mode, phrase_to_type)
+
+    # start countdown timer
+    countdown_timer(ROUND_COUNTDOWN)
+
+    # start timer
+    start = time.time()
+    # result_typed = str(input())
+
+    round_length = get_round_length(mode)
+
+    try:
+        # Take timed input using inputimeout() function
+        result_typed = str(inputimeout(prompt="", timeout=round_length))
+
+    # Catch the timeout error
+    except Exception:
+        # Declare the timeout statement
+        time_over = "You took too long!"
+        print(time_over)
+        sys.exit(1)
+
+    # end timer
+    end = time.time()
+
+    # calculate percentage of similarity of typed phrase and given phrase and print stats
+    if similarity_percentage(result_typed, phrase_to_type) >= MIN_ACCURACY:
+        time_result = end - start
+        clear()
+        print(f"{CGREEN}Statistics:")
+        print(
+            str(round(similarity_percentage(result_typed, phrase_to_type), 1))
+            + "% accuracy"
+        )
+        # print(str(word_count) + " words in " + str(round(time_result, 1)) + " seconds")
+        WPM = round((word_count / time_result) * 60, 1)
+        print(f"Your WPM is: {str(WPM)}")
+        all_wpms.append(WPM)
+
+        print(f"Your average WPM is: {str(average(all_wpms))}{CEND}")
+    else:
+        print(f"{CRED}Accuracy too low to calculate! Try again{CEND}")
+
+
+def display_phrases(mode, phrase_to_type):
     """
     display text to user
     """
-    print(CPURPLE + "[---- " + phrase_to_type + " ----]" + CEND)
+    # if mode is medium
+
+    if mode == "medium.txt":
+        # improving readability by limiting char count per line
+        phrase_to_type = max_characters_per_line(phrase_to_type)
+
+    print(CPURPLE + phrase_to_type + CEND)
     print()
 
 
-def load_phrase():
+def load_phrase(mode):
     """
     Reads phrases from a file called phrases.txt for user to write in terminal to practice
     """
     all_phrases = ""
-    with open("data.txt") as f:
+    with open(mode) as f:
         all_phrases = f.read().splitlines()
     return all_phrases
 
@@ -81,64 +164,6 @@ def count_words_in_phrase(phrase_to_type):
     return len(phrase_to_type.split())
 
 
-def wpm():
-    # call load_phrase and store into  ALL_PHRASES
-    ALL_PHRASES = load_phrase()
-
-    # choose random phrase
-    phrase_to_type = choose_phrase(ALL_PHRASES)
-
-    # count number of words in phrase
-    word_count = count_words_in_phrase(phrase_to_type)
-    
-    # show round count
-    print()
-    print(CBLUE)
-    print("[---------------------- Round " + str(len(all_wpms)+1) + " ----------------------]")
-    print(CEND)
-
-    # display phrases to user
-    display_phrases(phrase_to_type)
-
-    # start countdown timer
-    countdown_timer(ROUND_COUNTDOWN)
-
-    # start timer
-    start = time.time()
-    # result_typed = str(input())
-
-    try:
-        # Take timed input using inputimeout() function
-        result_typed = str(inputimeout(prompt="", timeout=ROUND_LENGTH))
-
-    # Catch the timeout error
-    except Exception:
-        # Declare the timeout statement
-        time_over = "You took too long!"
-        print(time_over)
-        sys.exit(1)
-
-    # end timer
-    end = time.time()
-
-    # calculate percentage of similarity of typed phrase and given phrase and print stats
-    if similarity_percentage(result_typed, phrase_to_type) >= MIN_ACCURACY:
-        time_result = end - start
-        print(CGREEN + "Statistics:")
-        print(
-            str(round(similarity_percentage(result_typed, phrase_to_type), 1))
-            + "% accuracy"
-        )
-        # print(str(word_count) + " words in " + str(round(time_result, 1)) + " seconds")
-        WPM = round((word_count / time_result) * 60, 1)
-        print("Your WPM is: " + str(WPM))
-        all_wpms.append(WPM)
-
-        print("Your average WPM is: " + str(average(all_wpms)) + CEND)
-    else:
-        print(CRED + "Accuracy too low to calculate! Try again" + CEND)
-
-
 #################################################################################
 """
  UTILITY FUNCTIONS AND VARIABLES
@@ -150,6 +175,13 @@ if os.name == "nt":
     clear = lambda: os.system("cls")
 else:
     clear = lambda: os.system("clear")
+
+
+def get_round_length(mode):
+    if mode == 1:
+        return EASY_ROUND_LENGTH
+    elif mode == 2:
+        return MEDIUM_ROUND_LENGTH
 
 
 def average(a_list):
@@ -180,8 +212,47 @@ def countdown_timer(seconds):
     sys.stdout.flush()
 
 
+def format_into_lines_of_10_words(phrase):
+    """
+    A function that returns a long sentences into multiple lines for better readability.
+    Each line must have max 10 words, then we add a new line and continue.
+    """
+    words = phrase.split()
+    lines = []
+
+    for i in range(0, len(words), 10):
+        line = " ".join(words[i : i + 10])
+        lines.append(line)
+
+    return "\n".join(lines)
+
+
+def max_characters_per_line(phrase, max_characters=MAX_CHAR_PER_LINE):
+    """
+    A function that returns a long sentences into multiple lines based on a max amount of characters
+    for better readability.
+    Each line must have max 10 words, then we add a new line and continue.
+    """
+    words = phrase.split()
+    lines = []
+    current_line = []
+
+    for word in words:
+        if current_line and len(" ".join(current_line + [word])) > max_characters:
+            lines.append(" ".join(current_line))
+            current_line = [word]
+        else:
+            current_line.append(word)
+
+    if current_line:
+        lines.append(" ".join(current_line))
+
+    return "\n".join(lines)
+
+
 def main():
     start_screen()
+    # print(format_into_lines_of_10_words("Under the star-studded canopy of the night sky, a lone astronomer peered through a telescope, captivated by the distant galaxies and nebulae that painted a tapestry of cosmic wonder."))
 
 
 if __name__ == "__main__":
