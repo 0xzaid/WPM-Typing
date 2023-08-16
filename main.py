@@ -10,6 +10,16 @@ import os
 import sys
 from inputimeout import inputimeout
 
+# Rich imports
+from rich.panel import Panel
+from rich import print as rprint
+from rich.panel import Panel
+from rich.text import Text
+from rich.prompt import Prompt
+from rich.console import Console
+from rich.table import Table
+from rich.layout import Layout
+
 # COLORS CONSTANTS
 CPURPLE = "\033[95m"
 CRED = "\033[91m"
@@ -37,17 +47,21 @@ def start_screen():
     """
     Start screen text for user
     """
-    clear()
-    print(f"{CGREEN}------[Welcome to WPM type tester!]------")
-    print()
-    print("Choose game mode: ")
-    print("1. Easy")
-    print("2. Medium")
-    print(CEND)
+
+    layout = setup_layout()
+    show_welcome_message(layout)
+    show_menu(layout)
+    show_typers_legend(layout)
+    rprint(layout)
+    # print("Choose game mode: ")
+    # print("1. Easy")
+    # print("2. Medium")
+    # print(CEND)
 
     while True:
         print(CGREEN)
         game_mode = str(input("Choose gamemode using '1', '2' or 'q' to quit: "))
+
         if game_mode == "1":
             clear()
             wpm(EASY)
@@ -61,7 +75,7 @@ def start_screen():
             clear()
             print(f"{CRED}Incorrect input: {game_mode}")
             print("Try again!")
-            print(CEND)
+        print(CEND)
 
 
 def wpm(mode):
@@ -97,14 +111,80 @@ SHOW FUNCTIONS
 #################################################################################
 
 
+def show_welcome_message(layout):
+    # clear()
+
+    layout["upper"].update(
+        Panel(
+            Text(
+                """      
+▒█░░▒█ █▀▀ █░░ █▀▀ █▀▀█ █▀▄▀█ █▀▀ 　 ▀▀█▀▀ █▀▀█ 　 ▒█░░▒█ ▒█▀▀█ ▒█▀▄▀█ 　 ▀▀█▀▀ █░░█ █▀▀█ █▀▀ █▀▀█ 
+▒█▒█▒█ █▀▀ █░░ █░░ █░░█ █░▀░█ █▀▀ 　 ░░█░░ █░░█ 　 ▒█▒█▒█ ▒█▄▄█ ▒█▒█▒█ 　 ░░█░░ █▄▄█ █░░█ █▀▀ █▄▄▀ 
+▒█▄▀▄█ ▀▀▀ ▀▀▀ ▀▀▀ ▀▀▀▀ ▀░░░▀ ▀▀▀ 　 ░░▀░░ ▀▀▀▀ 　 ▒█▄▀▄█ ▒█░░░ ▒█░░▒█ 　 ░░▀░░ ▄▄▄█ █▀▀▀ ▀▀▀ ▀░▀▀
+            """,
+                justify="center",
+                style="green bold",
+            ),
+            border_style="green bold",
+        )
+    )
+
+    # return layout
+    # print(f"{CGREEN}------[Welcome to WPM type tester!]------")
+    # print()
+
+
+def show_menu(layout):
+    layout["left"].update(
+        Panel(
+            Text("Choose game mode: \n1. Easy\n2. Medium\n"),
+            border_style="green bold",
+        )
+    )
+
+
+def show_typers_legend(layout):
+    def setup_table():
+        # Title of the table
+        table = Table(title="Typing Skill Level")
+
+        # Adding columns
+        table.add_column("Skill level", justify="center", style="cyan", no_wrap=True)
+        table.add_column("WPM", justify="center", style="cyan", no_wrap=True)
+
+        # Adding rows
+        table.add_row("Beginner", "0-24")
+        table.add_row("Intermediate", "25-30")
+        table.add_row("Average", "31-41")
+        table.add_row("Pro", "42-54")
+        table.add_row("Typemaster", "55-79")
+        table.add_row("Megaracer", "80+")
+
+        return table
+
+    table = setup_table()
+
+    layout["right"].update(
+        Panel(
+            table,
+            border_style="green bold",
+        )
+    )
+
+
 def show_round_count():
+    round_count = str(len(ALL_WPMS) + 1)
     clear()
     print()
-    print(CBLUE)
-    print(
-        f"[---------------------- Round {str(len(ALL_WPMS) + 1)} ----------------------]"
+    panel = Panel(
+        Text(
+            f"[---------------------- Round {round_count} ----------------------]",
+            justify="center",
+            style="blue bold",
+        ),
+        border_style="blue",
     )
-    print(CEND)
+    rprint(panel)
 
 
 def show_user_stats(result_typed, phrase_to_type, time_result, word_count):
@@ -135,8 +215,33 @@ def show_phrases(mode, phrase_to_type):
         # improving readability by limiting char count per line
         phrase_to_type = max_characters_per_line(phrase_to_type)
 
-    print(CPURPLE + phrase_to_type + CEND)
+    panel = Panel(
+        Text(f"{phrase_to_type}", justify="center", style="purple"), border_style="blue"
+    )
+    rprint(panel)
+    # print(CPURPLE + phrase_to_type + CEND)
     print()
+
+
+#################################################################################
+"""
+RICH FUNCTIONS
+"""
+#################################################################################
+
+
+def setup_layout():
+    layout = Layout()
+    layout.split_column(Layout(name="upper"), Layout(name="lower"))
+    layout["upper"].size = 7
+    # layout['lower'].size = 16
+    layout["lower"].split_row(
+        Layout(name="left", ratio=2),
+        Layout(name="right", ratio=1),
+    )
+
+    return layout
+    # rprint(layout)
 
 
 #################################################################################
@@ -149,7 +254,6 @@ OTHER WPM FUNCTIONS
 def user_types(mode):
     # start timer
     start = time.time()
-    # result_typed = str(input())
     round_length = get_round_length(mode)
     try:
         # Take timed input using inputimeout() function
@@ -276,7 +380,6 @@ def max_characters_per_line(phrase, max_characters=MAX_CHAR_PER_LINE):
 
 def main():
     start_screen()
-    # print(format_into_lines_of_10_words("Under the star-studded canopy of the night sky, a lone astronomer peered through a telescope, captivated by the distant galaxies and nebulae that painted a tapestry of cosmic wonder."))
 
 
 if __name__ == "__main__":
