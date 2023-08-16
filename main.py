@@ -137,8 +137,10 @@ def show_welcome_message(layout):
 def show_menu(layout):
     layout["left"].update(
         Panel(
-            Text("Choose game mode: \n1. Easy\n2. Medium\n"),
+            Text("Choose game mode: \n1. Easy\n2. Medium\n", justify="center"),
             border_style="green bold",
+            style="green bold",
+        
         )
     )
 
@@ -232,8 +234,10 @@ RICH FUNCTIONS
 
 def setup_layout():
     layout = Layout()
+
     layout.split_column(Layout(name="upper"), Layout(name="lower"))
     layout["upper"].size = 7
+    layout["lower"].size = 16
     # layout['lower'].size = 16
     layout["lower"].split_row(
         Layout(name="left", ratio=2),
