@@ -321,9 +321,9 @@ else:
 
 
 def get_round_length(mode):
-    if mode == 1:
+    if mode == "./data/easy.txt":
         return EASY_ROUND_LENGTH
-    elif mode == 2:
+    elif mode == "./data/medium.txt":
         return MEDIUM_ROUND_LENGTH
 
 
