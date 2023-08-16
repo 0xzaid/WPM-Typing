@@ -1,6 +1,8 @@
 """
 A program that can measure words per minute when typing phrases 
 """
+
+# Importing libraries
 import random
 import time
 from difflib import SequenceMatcher
@@ -8,24 +10,27 @@ import os
 import sys
 from inputimeout import inputimeout
 
-# colors for text
+# COLORS CONSTANTS
 CPURPLE = "\033[95m"
 CRED = "\033[91m"
 CEND = "\033[0m"
 CGREEN = "\033[92m"
 CBLUE = "\33[94m"
 
-# keep track of all wpms
-all_wpms = []
-
-# CONSTANTS
+# INTEGER CONSTANTS
 EASY_ROUND_LENGTH = 15
 MEDIUM_ROUND_LENGTH = 60
 ROUND_COUNTDOWN = 3
 MIN_ACCURACY = 92
+
+# TEXT CONSTANTS
 EASY = "./data/easy.txt"
 MEDIUM = "./data/medium.txt"
-MAX_CHAR_PER_LINE = 100
+MAX_CHAR_PER_LINE = 85
+
+# ARRAY CONSTANTS
+ALL_WPMS = []
+CHOSEN_PHRASES = []
 
 
 def start_screen():
@@ -35,35 +40,32 @@ def start_screen():
     clear()
     print(f"{CGREEN}------[Welcome to WPM type tester!]------")
     print()
-    # print(" - Text will be displayed")
     print("Choose game mode: ")
     print("1. Easy")
     print("2. Medium")
-    # print(" - whenever ready type r click enter and a timer will start" + CEND)
     print(CEND)
 
     while True:
         print(CGREEN)
         game_mode = str(input("Choose gamemode using '1', '2' or 'q' to quit: "))
-
         if game_mode == "1":
             clear()
             wpm(EASY)
         elif game_mode == "2":
             wpm(MEDIUM)
-        elif ready == "q":
-            print(CGREEN + "Goodbye!" + CEND)
+        elif game_mode == "q":
+            print(f"{CGREEN}Goodbye!{CEND}")
             clear()
             sys.exit(1)
         else:
             clear()
-            print(CRED + "Incorrect input: " + game_mode)
+            print(f"{CRED}Incorrect input: {game_mode}")
             print("Try again!")
             print(CEND)
 
 
 def wpm(mode):
-    # call load_phrase and store into  ALL_PHRASES
+    # call load_phrase and store into ALL_PHRASES
     ALL_PHRASES = load_phrase(mode)
 
     # choose random phrase
@@ -73,26 +75,82 @@ def wpm(mode):
     word_count = count_words_in_phrase(phrase_to_type)
 
     # show round count
-    clear()
-    print()
-    print(CBLUE)
-    print(
-        f"[---------------------- Round {str(len(all_wpms) + 1)} ----------------------]"
-    )
-    print(CEND)
+    show_round_count()
 
     # display phrases to user
-    display_phrases(mode, phrase_to_type)
+    show_phrases(mode, phrase_to_type)
 
     # start countdown timer
     countdown_timer(ROUND_COUNTDOWN)
 
+    # User starts typing, return the user's results and time
+    result_typed, time_result = user_types(mode)
+
+    # display the user's result and stats
+    show_user_stats(result_typed, phrase_to_type, time_result, word_count)
+
+
+#################################################################################
+"""
+SHOW FUNCTIONS
+"""
+#################################################################################
+
+
+def show_round_count():
+    clear()
+    print()
+    print(CBLUE)
+    print(
+        f"[---------------------- Round {str(len(ALL_WPMS) + 1)} ----------------------]"
+    )
+    print(CEND)
+
+
+def show_user_stats(result_typed, phrase_to_type, time_result, word_count):
+    # calculate percentage of similarity of typed phrase and given phrase and print stats
+    if similarity_percentage(result_typed, phrase_to_type) >= MIN_ACCURACY:
+        clear()
+        print(f"{CGREEN}Statistics:")
+        print(
+            str(round(similarity_percentage(result_typed, phrase_to_type), 1))
+            + "% accuracy"
+        )
+        # print(str(word_count) + " words in " + str(round(time_result, 1)) + " seconds")
+        WPM = round((word_count / time_result) * 60, 1)
+        print(f"Your WPM is: {str(WPM)}")
+        ALL_WPMS.append(WPM)
+
+        print(f"Your average WPM is: {str(average(ALL_WPMS))}{CEND}")
+    else:
+        print(f"{CRED}Accuracy too low to calculate! Try again{CEND}")
+
+
+def show_phrases(mode, phrase_to_type):
+    """
+    display text to user
+    """
+    # if mode is medium
+    if mode == "./data/medium.txt":
+        # improving readability by limiting char count per line
+        phrase_to_type = max_characters_per_line(phrase_to_type)
+
+    print(CPURPLE + phrase_to_type + CEND)
+    print()
+
+
+#################################################################################
+"""
+OTHER WPM FUNCTIONS
+"""
+#################################################################################
+
+
+def user_types(mode):
     # start timer
     start = time.time()
     # result_typed = str(input())
-
     round_length = get_round_length(mode)
-
     try:
         # Take timed input using inputimeout() function
         result_typed = str(inputimeout(prompt="", timeout=round_length))
@@ -107,37 +165,9 @@ def wpm(mode):
     # end timer
     end = time.time()
 
-    # calculate percentage of similarity of typed phrase and given phrase and print stats
-    if similarity_percentage(result_typed, phrase_to_type) >= MIN_ACCURACY:
-        time_result = end - start
-        clear()
-        print(f"{CGREEN}Statistics:")
-        print(
-            str(round(similarity_percentage(result_typed, phrase_to_type), 1))
-            + "% accuracy"
-        )
-        # print(str(word_count) + " words in " + str(round(time_result, 1)) + " seconds")
-        WPM = round((word_count / time_result) * 60, 1)
-        print(f"Your WPM is: {str(WPM)}")
-        all_wpms.append(WPM)
+    time_result = end - start
 
-        print(f"Your average WPM is: {str(average(all_wpms))}{CEND}")
-    else:
-        print(f"{CRED}Accuracy too low to calculate! Try again{CEND}")
-
-
-def display_phrases(mode, phrase_to_type):
-    """
-    display text to user
-    """
-    # if mode is medium
-
-    if mode == "medium.txt":
-        # improving readability by limiting char count per line
-        phrase_to_type = max_characters_per_line(phrase_to_type)
-
-    print(CPURPLE + phrase_to_type + CEND)
-    print()
+    return result_typed, time_result
 
 
 def load_phrase(mode):
@@ -152,9 +182,18 @@ def load_phrase(mode):
 
 def choose_phrase(phrases_list):
     """
-    Choose a random phrase from the phrases lsit
+    Choose a random phrase from the phrases list
+    It keeps track that a phrase has not been chosen
+    previously in the game
     """
-    return random.choice(phrases_list)
+    while True:
+        # Get a phrase
+        current_phrase = random.choice(phrases_list)
+        # If not seen before, add to list and return
+        # else get a another phrase
+        if current_phrase not in CHOSEN_PHRASES:
+            CHOSEN_PHRASES.append(current_phrase)
+            return current_phrase
 
 
 def count_words_in_phrase(phrase_to_type):
@@ -204,27 +243,12 @@ def countdown_timer(seconds):
     countdown timer based on 'seconds' variable
     """
     for i in range(seconds, 0, -1):
-        print(str(i), end="\r")
+        print(i, end="\r")
         time.sleep(1)
 
     # Clear the line by printing spaces and moving the cursor back
     print(" " * len(str(seconds)), end="\r")
     sys.stdout.flush()
-
-
-def format_into_lines_of_10_words(phrase):
-    """
-    A function that returns a long sentences into multiple lines for better readability.
-    Each line must have max 10 words, then we add a new line and continue.
-    """
-    words = phrase.split()
-    lines = []
-
-    for i in range(0, len(words), 10):
-        line = " ".join(words[i : i + 10])
-        lines.append(line)
-
-    return "\n".join(lines)
 
 
 def max_characters_per_line(phrase, max_characters=MAX_CHAR_PER_LINE):
