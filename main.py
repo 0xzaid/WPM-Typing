@@ -49,11 +49,12 @@ def start_screen():
     """
     Start screen text for user
     """
-
+    console = Console()
     layout = setup_layout()
     show_welcome_message(layout)
     show_menu(layout)
     show_typers_legend(layout)
+    show_footer(layout)
     rprint(layout)
     # print("Choose game mode: ")
     # print("1. Easy")
@@ -168,7 +169,6 @@ def show_typers_legend(layout):
         table.add_row("Pro", "42-54")
         table.add_row("Typemaster", "55-79")
         table.add_row("Megaracer", "80+")
-
         return table
 
     table = setup_table()
@@ -176,6 +176,19 @@ def show_typers_legend(layout):
     layout["right"].update(
         Panel(
             table,
+            border_style="green bold",
+        )
+    )
+
+
+def show_footer(layout):
+    layout["footer"].update(
+        Panel(
+            Text(
+                "Made with ❤️ by 0xzaid",
+                justify="center",
+                style="purple bold",
+            ),
             border_style="green bold",
         )
     )
@@ -258,11 +271,19 @@ RICH FUNCTIONS
 
 def setup_layout():
     layout = Layout()
-    
 
-    layout.split_column(Layout(name="upper"), Layout(name="lower"))
+    # initializing sections in layout
+    layout.split_column(
+        Layout(name="upper"),
+        Layout(name="lower"),
+        Layout(name="footer"),
+    )
+
+    # setting sizes
     layout["upper"].size = 3
     layout["lower"].size = 16
+    layout["footer"].size = 3
+
     # layout['lower'].size = 16
     layout["lower"].split_row(
         Layout(name="left", ratio=2),
@@ -380,7 +401,7 @@ def countdown_timer(seconds):
     for i in range(seconds, 0, -1):
         countdown_text = Text(str(i), style="bold red")
         countdown_panel = Panel(countdown_text, expand=False, border_style="bold red")
-        
+
         # Print the countdown panel on the same line without clearing
         rprint(countdown_panel, end="\r=")
         time.sleep(1)
