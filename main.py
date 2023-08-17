@@ -30,13 +30,15 @@ CBLUE = "\33[94m"
 
 # INTEGER CONSTANTS
 EASY_ROUND_LENGTH = 15
-MEDIUM_ROUND_LENGTH = 60
+MEDIUM_ROUND_LENGTH = 45
+HARD_ROUND_LENGTH = 70
 ROUND_COUNTDOWN = 3
 MIN_ACCURACY = 92
 
 # TEXT CONSTANTS
 EASY = "./data/easy.txt"
 MEDIUM = "./data/medium.txt"
+HARD = "./data/hard.txt"
 MAX_CHAR_PER_LINE = 85
 user_input = ""
 
@@ -68,7 +70,7 @@ def start_screen():
         user_input = p.ask(
             prompt="Choose gamemode: \n ❯ ",
             console=Console(),
-            choices=["1", "2", "q"],
+            choices=["1", "2", "3", "q"],
             show_default=True,
             show_choices=True,
         )
@@ -80,6 +82,8 @@ def start_screen():
             wpm(EASY)
         elif user_input == "2":
             wpm(MEDIUM)
+        elif user_input == "3":
+            wpm(HARD)
         elif user_input == "q":
             print(f"{CGREEN}Goodbye!{CEND}")
             clear()
@@ -146,7 +150,7 @@ def show_welcome_message(layout):
 def show_menu(layout):
     layout["left"].update(
         Panel(
-            Text("Choose game mode: \n1. Easy\n2. Medium\n", justify="center"),
+            Text("Choose game mode: \n1. Easy\n2. Medium\n3. Hard", justify="center"),
             border_style="green bold",
             style="green bold",
         )
@@ -250,7 +254,7 @@ def show_phrases(mode, phrase_to_type):
     display text to user
     """
     # if mode is medium
-    if mode == "./data/medium.txt":
+    if mode != "./data/easy.txt":
         # improving readability by limiting char count per line
         phrase_to_type = max_characters_per_line(phrase_to_type)
 
@@ -375,6 +379,8 @@ def get_round_length(mode):
         return EASY_ROUND_LENGTH
     elif mode == "./data/medium.txt":
         return MEDIUM_ROUND_LENGTH
+    elif mode == "./data/hard.txt":
+        return HARD_ROUND_LENGTH
 
 
 def average(a_list):
