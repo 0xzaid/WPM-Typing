@@ -74,7 +74,7 @@ def start_screen():
         user_input = p.ask(
             prompt="Choose gamemode: \n ❯ ",
             console=Console(),
-            choices=["1", "2", "3", "4", "q"],
+            choices=["1", "2", "3", "4", "m", "q"],
             show_default=True,
             show_choices=True,
         )
@@ -91,9 +91,11 @@ def start_screen():
         elif user_input == "4":
             wpm(CODE)
         elif user_input == "q":
-            print(f"{CGREEN}Goodbye!{CEND}")
             clear()
+            print(f"{CGREEN}Goodbye! Thanks for playing :){CEND}")
             sys.exit(1)
+        elif user_input == "m":
+            start_screen()
         else:
             clear()
             print(f"{CRED}Incorrect input: {user_input}")
@@ -161,7 +163,7 @@ def show_menu(layout):
     layout["left"].update(
         Panel(
             Text(
-                "Choose game mode: \n1. Easy\n2. Medium\n3. Hard\n4. Code",
+                "Choose option: \n1. Easy\n2. Medium\n3. Hard\n4. Code\n m. Return to Main Menu\nq. Quit",
                 justify="center",
             ),
             border_style="green bold",
@@ -333,7 +335,7 @@ def show_phrases(mode, phrase_to_type):
         rprint(p)
     else:
         text = f"{phrase_to_type}"
-        display_text(text, style="purple")
+        display_text(text, style="purple" )
 
 
 #################################################################################
