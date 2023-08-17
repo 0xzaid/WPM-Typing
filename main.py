@@ -193,19 +193,42 @@ def show_user_stats(result_typed, phrase_to_type, time_result, word_count):
     # calculate percentage of similarity of typed phrase and given phrase and print stats
     if similarity_percentage(result_typed, phrase_to_type) >= MIN_ACCURACY:
         clear()
-        print(f"{CGREEN}Statistics:")
-        print(
-            str(round(similarity_percentage(result_typed, phrase_to_type), 1))
-            + "% accuracy"
-        )
+        # print(f"{CGREEN}Statistics:")
+        # print(
+        #     str(round(similarity_percentage(result_typed, phrase_to_type), 1))
+        #     + "% accuracy"
+        # )
         # print(str(word_count) + " words in " + str(round(time_result, 1)) + " seconds")
         WPM = round((word_count / time_result) * 60, 1)
-        print(f"Your WPM is: {str(WPM)}")
-        ALL_WPMS.append(WPM)
+        # print(f"Your WPM is: {str(WPM)}")
+        
+        round_count = str(len(ALL_WPMS) + 1)
 
-        print(f"Your average WPM is: {str(average(ALL_WPMS))}{CEND}")
+        ALL_WPMS.append(WPM)
+        
+        avg = average(ALL_WPMS)
+        
+        p = Panel(
+            Text(
+                f"""Your Accuracy was: {str(round(similarity_percentage(result_typed, phrase_to_type), 1))}%\nYour WPM score is: {str(WPM)}\nAfter {round_count} rounds, your average is: {avg}""",
+                style="bold green",
+                justify="center",
+            ),
+            title="Statistics",
+            border_style="purple bold",
+        )
+        rprint(p)
+
+        
+
+        # print(f"Your average WPM is: {str(average(ALL_WPMS))}{CEND}")
     else:
-        print(f"{CRED}Accuracy too low to calculate! Try again{CEND}")
+        Panel(
+            Text(
+                f"Accuracy too low to calculate! Try again"
+            )
+        )
+        # print(f"{CRED}Accuracy too low to calculate! Try again{CEND}")
 
 
 def show_phrases(mode, phrase_to_type):
@@ -336,6 +359,8 @@ def average(a_list):
     return average of a list
     """
     length = len(a_list)
+    if length == 0:
+        return
     return round(sum(a_list) / length, 1)
 
 
