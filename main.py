@@ -20,6 +20,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.layout import Layout
 
+
 # COLORS CONSTANTS
 CPURPLE = "\033[95m"
 CRED = "\033[91m"
@@ -37,6 +38,7 @@ MIN_ACCURACY = 92
 EASY = "./data/easy.txt"
 MEDIUM = "./data/medium.txt"
 MAX_CHAR_PER_LINE = 85
+user_input = ""
 
 # ARRAY CONSTANTS
 ALL_WPMS = []
@@ -59,21 +61,31 @@ def start_screen():
     # print(CEND)
 
     while True:
-        print(CGREEN)
-        game_mode = str(input("Choose gamemode using '1', '2' or 'q' to quit: "))
+        # user_input = ""
 
-        if game_mode == "1":
+        p = Prompt()
+        user_input = p.ask(
+            prompt="Choose gamemode: \n ❯ ",
+            console=Console(),
+            choices=["1", "2", "q"],
+            show_default=True,
+            show_choices=True,
+        )
+
+        # user_input = str(input("Choose gamemode using '1', '2' or 'q' to quit: "))
+
+        if user_input == "1":
             clear()
             wpm(EASY)
-        elif game_mode == "2":
+        elif user_input == "2":
             wpm(MEDIUM)
-        elif game_mode == "q":
+        elif user_input == "q":
             print(f"{CGREEN}Goodbye!{CEND}")
             clear()
             sys.exit(1)
         else:
             clear()
-            print(f"{CRED}Incorrect input: {game_mode}")
+            print(f"{CRED}Incorrect input: {user_input}")
             print("Try again!")
         print(CEND)
 
@@ -113,15 +125,11 @@ SHOW FUNCTIONS
 
 def show_welcome_message(layout):
     # clear()
-
+    # Create a Text element with the formatted time
     layout["upper"].update(
         Panel(
             Text(
-                """      
-▒█░░▒█ █▀▀ █░░ █▀▀ █▀▀█ █▀▄▀█ █▀▀ 　 ▀▀█▀▀ █▀▀█ 　 ▒█░░▒█ ▒█▀▀█ ▒█▀▄▀█ 　 ▀▀█▀▀ █░░█ █▀▀█ █▀▀ █▀▀█ 
-▒█▒█▒█ █▀▀ █░░ █░░ █░░█ █░▀░█ █▀▀ 　 ░░█░░ █░░█ 　 ▒█▒█▒█ ▒█▄▄█ ▒█▒█▒█ 　 ░░█░░ █▄▄█ █░░█ █▀▀ █▄▄▀ 
-▒█▄▀▄█ ▀▀▀ ▀▀▀ ▀▀▀ ▀▀▀▀ ▀░░░▀ ▀▀▀ 　 ░░▀░░ ▀▀▀▀ 　 ▒█▄▀▄█ ▒█░░░ ▒█░░▒█ 　 ░░▀░░ ▄▄▄█ █▀▀▀ ▀▀▀ ▀░▀▀
-            """,
+                "Welcome to WPM Typer!",
                 justify="center",
                 style="green bold",
             ),
@@ -140,7 +148,6 @@ def show_menu(layout):
             Text("Choose game mode: \n1. Easy\n2. Medium\n", justify="center"),
             border_style="green bold",
             style="green bold",
-        
         )
     )
 
@@ -201,13 +208,13 @@ def show_user_stats(result_typed, phrase_to_type, time_result, word_count):
         # print(str(word_count) + " words in " + str(round(time_result, 1)) + " seconds")
         WPM = round((word_count / time_result) * 60, 1)
         # print(f"Your WPM is: {str(WPM)}")
-        
+
         round_count = str(len(ALL_WPMS) + 1)
 
         ALL_WPMS.append(WPM)
-        
+
         avg = average(ALL_WPMS)
-        
+
         p = Panel(
             Text(
                 f"""Your Accuracy was: {str(round(similarity_percentage(result_typed, phrase_to_type), 1))}%\nYour WPM score is: {str(WPM)}\nAfter {round_count} rounds, your average is: {avg}""",
@@ -219,15 +226,9 @@ def show_user_stats(result_typed, phrase_to_type, time_result, word_count):
         )
         rprint(p)
 
-        
-
         # print(f"Your average WPM is: {str(average(ALL_WPMS))}{CEND}")
     else:
-        Panel(
-            Text(
-                f"Accuracy too low to calculate! Try again"
-            )
-        )
+        Panel(Text(f"Accuracy too low to calculate! Try again"))
         # print(f"{CRED}Accuracy too low to calculate! Try again{CEND}")
 
 
@@ -257,9 +258,10 @@ RICH FUNCTIONS
 
 def setup_layout():
     layout = Layout()
+    
 
     layout.split_column(Layout(name="upper"), Layout(name="lower"))
-    layout["upper"].size = 7
+    layout["upper"].size = 3
     layout["lower"].size = 16
     # layout['lower'].size = 16
     layout["lower"].split_row(
@@ -376,11 +378,15 @@ def countdown_timer(seconds):
     countdown timer based on 'seconds' variable
     """
     for i in range(seconds, 0, -1):
-        print(i, end="\r")
+        countdown_text = Text(str(i), style="bold red")
+        countdown_panel = Panel(countdown_text, expand=False, border_style="bold red")
+        
+        # Print the countdown panel on the same line without clearing
+        rprint(countdown_panel, end="\r=")
         time.sleep(1)
 
     # Clear the line by printing spaces and moving the cursor back
-    print(" " * len(str(seconds)), end="\r")
+    # print(" " * len(str(seconds)), end="\r")
     sys.stdout.flush()
 
 
