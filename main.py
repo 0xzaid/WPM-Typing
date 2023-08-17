@@ -18,6 +18,7 @@ from rich.text import Text
 from rich.prompt import Prompt
 from rich.console import Console
 from rich.table import Table
+from rich.markdown import Markdown
 from rich.layout import Layout
 
 
@@ -32,14 +33,17 @@ CBLUE = "\33[94m"
 EASY_ROUND_LENGTH = 15
 MEDIUM_ROUND_LENGTH = 45
 HARD_ROUND_LENGTH = 70
+CODE_ROUND_LENGTH = 120
 ROUND_COUNTDOWN = 3
 MIN_ACCURACY = 92
+CODE_MIN_ACCURACY = 15
 
 # TEXT CONSTANTS
 EASY = "./data/easy.txt"
 MEDIUM = "./data/medium.txt"
 HARD = "./data/hard.txt"
-MAX_CHAR_PER_LINE = 85
+CODE = "./data/code.txt"
+MAX_CHAR_PER_LINE = 90
 user_input = ""
 
 # ARRAY CONSTANTS
@@ -70,7 +74,7 @@ def start_screen():
         user_input = p.ask(
             prompt="Choose gamemode: \n ❯ ",
             console=Console(),
-            choices=["1", "2", "3", "q"],
+            choices=["1", "2", "3", "4", "q"],
             show_default=True,
             show_choices=True,
         )
@@ -84,6 +88,8 @@ def start_screen():
             wpm(MEDIUM)
         elif user_input == "3":
             wpm(HARD)
+        elif user_input == "4":
+            wpm(CODE)
         elif user_input == "q":
             print(f"{CGREEN}Goodbye!{CEND}")
             clear()
@@ -106,7 +112,11 @@ def wpm(mode):
     word_count = count_words_in_phrase(phrase_to_type)
 
     # show round count
-    show_round_count()
+    # show_round_count()
+
+    # show round time limit
+    clear()
+    show_round_time_limit(mode)
 
     # display phrases to user
     show_phrases(mode, phrase_to_type)
@@ -118,7 +128,7 @@ def wpm(mode):
     result_typed, time_result = user_types(mode)
 
     # display the user's result and stats
-    show_user_stats(result_typed, phrase_to_type, time_result, word_count)
+    show_user_stats(mode, result_typed, phrase_to_type, time_result, word_count)
 
 
 #################################################################################
@@ -150,7 +160,10 @@ def show_welcome_message(layout):
 def show_menu(layout):
     layout["left"].update(
         Panel(
-            Text("Choose game mode: \n1. Easy\n2. Medium\n3. Hard", justify="center"),
+            Text(
+                "Choose game mode: \n1. Easy\n2. Medium\n3. Hard\n4. Code",
+                justify="center",
+            ),
             border_style="green bold",
             style="green bold",
         )
@@ -213,9 +226,36 @@ def show_round_count():
     rprint(panel)
 
 
-def show_user_stats(result_typed, phrase_to_type, time_result, word_count):
+def show_round_time_limit(mode):
+    if mode == "./data/easy.txt":
+        timing = EASY_ROUND_LENGTH
+    elif mode == "./data/medium.txt":
+        timing = MEDIUM_ROUND_LENGTH
+    elif mode == "./data/hard.txt":
+        timing = HARD_ROUND_LENGTH
+    elif mode == "./data/code.txt":
+        timing = CODE_ROUND_LENGTH
+
+    panel = Panel(
+        Text(
+            f"You have {timing} seconds to complete this!",
+            justify="center",
+            style="green bold",
+        ),
+        border_style="blue",
+    )
+    rprint(panel)
+
+
+def show_user_stats(mode, result_typed, phrase_to_type, time_result, word_count):
     # calculate percentage of similarity of typed phrase and given phrase and print stats
-    if similarity_percentage(result_typed, phrase_to_type) >= MIN_ACCURACY:
+    min_accuracy = MIN_ACCURACY
+    if mode == "./data/code.txt":
+        min_accuracy = CODE_MIN_ACCURACY
+    else:
+        MIN_ACCURACY
+
+    if similarity_percentage(result_typed, phrase_to_type) >= min_accuracy:
         clear()
         # print(f"{CGREEN}Statistics:")
         # print(
@@ -245,25 +285,55 @@ def show_user_stats(result_typed, phrase_to_type, time_result, word_count):
 
         # print(f"Your average WPM is: {str(average(ALL_WPMS))}{CEND}")
     else:
-        Panel(Text(f"Accuracy too low to calculate! Try again"))
+        Panel(Text(f"Accuracy too low to calculate! Try again", style="red bold"))
         # print(f"{CRED}Accuracy too low to calculate! Try again{CEND}")
+
+
+def display_text(text, style=None):
+    """
+    Display text to the user in a customizable style.
+    """
+    round_count = str(len(ALL_WPMS) + 1)
+
+    if style:
+        text = Text(text, justify="center", style=style)
+    else:
+        text = Text(text, justify="center")
+
+    text_panel = Panel(text, title=f"Round {round_count}", border_style="blue")
+    rprint(text_panel)
+    print()
+
+
+def format_code(code):
+    """
+    Format code for display using Markdown.
+    """
+    code = replace_newlines_and_tabs(code)
+    formatted_code = f"```python\n{code}\n```"
+    markdown_code = Markdown(formatted_code)
+    return markdown_code
 
 
 def show_phrases(mode, phrase_to_type):
     """
-    display text to user
+    Display different types of phrases based on the mode.
     """
-    # if mode is medium
-    if mode != "./data/easy.txt":
-        # improving readability by limiting char count per line
-        phrase_to_type = max_characters_per_line(phrase_to_type)
+    
+    round_count = str(len(ALL_WPMS) + 1)
+    
+    if mode in ["./data/medium.txt", "./data/hard.txt"]:
+        phrase_to_type = max_characters_per_line(
+            phrase_to_type
+        )  # Assuming max_characters_per_line is defined
 
-    panel = Panel(
-        Text(f"{phrase_to_type}", justify="center", style="purple"), border_style="blue"
-    )
-    rprint(panel)
-    # print(CPURPLE + phrase_to_type + CEND)
-    print()
+    if mode == "./data/code.txt":
+        text = format_code(phrase_to_type)
+        p = Panel(text, title=f"Round {round_count}", border_style="blue")
+        rprint(p)
+    else:
+        text = f"{phrase_to_type}"
+        display_text(text, style="purple")
 
 
 #################################################################################
@@ -381,6 +451,8 @@ def get_round_length(mode):
         return MEDIUM_ROUND_LENGTH
     elif mode == "./data/hard.txt":
         return HARD_ROUND_LENGTH
+    elif mode == "./data/code.txt":
+        return CODE_ROUND_LENGTH
 
 
 def average(a_list):
@@ -438,6 +510,11 @@ def max_characters_per_line(phrase, max_characters=MAX_CHAR_PER_LINE):
         lines.append(" ".join(current_line))
 
     return "\n".join(lines)
+
+
+def replace_newlines_and_tabs(input_text):
+    output_text = input_text.replace("\\n", "\n").replace("\\t", "\t")
+    return output_text
 
 
 def main():

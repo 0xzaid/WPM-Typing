@@ -1,0 +1,1 @@
+def factorial(n):\n\tif n == 0:\n\t\treturn 1\n\telse:\n\t\treturn n * factorial(n - 1)
